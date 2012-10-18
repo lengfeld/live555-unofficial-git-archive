@@ -1,0 +1,49 @@
+diff -cr live.2012.10.17/liveMedia/RTPInterface.cpp live.2012.10.17.new/liveMedia/RTPInterface.cpp
+*** live.2012.10.17/liveMedia/RTPInterface.cpp	2012-10-17 16:48:03.000000000 +0200
+--- live.2012.10.17.new/liveMedia/RTPInterface.cpp	2012-10-18 01:05:02.306816118 +0200
+***************
+*** 487,495 ****
+  	  fTCPReadingState = AWAITING_PACKET_DATA;
+  	  rtpInterface->fReadHandlerProc(rtpInterface->fOwner, mask);
+  	}
+  #ifdef DEBUG_RECEIVE
+! 	else fprintf(stderr, "SocketDescriptor(socket %d)::tcpReadHandler(): No handler proc for \"rtpInterface\" for channel %d\n", fOurSocketNum, fStreamChannelId);
+  #endif
+        }
+  #ifdef DEBUG_RECEIVE
+        else fprintf(stderr, "SocketDescriptor(socket %d)::tcpReadHandler(): No \"rtpInterface\" for channel %d\n", fOurSocketNum, fStreamChannelId);
+--- 487,520 ----
+  	  fTCPReadingState = AWAITING_PACKET_DATA;
+  	  rtpInterface->fReadHandlerProc(rtpInterface->fOwner, mask);
+  	}
++ 	else
++   {
+  #ifdef DEBUG_RECEIVE
+!     fprintf(stderr, "SocketDescriptor(socket %d)::tcpReadHandler(): No handler proc for \"rtpInterface\" for channel %d\n", fOurSocketNum, fStreamChannelId);
+  #endif
++     // in cases where the RTSP exchange is still taking place, we need to skip the RTP/RTCP data so that we can process 
++     // RTSP response messages that interleaved with the RTP/RTCP data
++ #ifdef DEBUG_RECEIVE
++     fprintf(stderr, "No handler proc for channel: need to skip %d bytes of content", rtpInterface->fNextTCPReadSize);
++ #endif
++     int result = readSocket(fEnv, fOurSocketNum, &c, 1, fromAddress);
++     if (result != 1) { // error reading TCP socket, so we will no longer handle it
++ #ifdef DEBUG_RECEIVE
++       fprintf(stderr, "SocketDescriptor(socket %d)::tcpReadHandler(): readSocket(1 byte) returned %d (error) while skipping\n", fOurSocketNum, result);
++ #endif
++       fEnv.taskScheduler().turnOffBackgroundReadHandling(fOurSocketNum); // stops further calls to us
++       if (fServerRequestAlternativeByteHandler != NULL) {
++         // Hack: see similar code above 
++         (*fServerRequestAlternativeByteHandler)(fServerRequestAlternativeByteHandlerClientData, 0xFF);
++       }
++       removeSocketDescription(fEnv, fOurSocketNum);
++       delete this;
++       return;
++     }
++     // decrement counter for next read
++     rtpInterface->fNextTCPReadSize--;
++     fTCPReadingState = AWAITING_PACKET_DATA;
++   }
+        }
+  #ifdef DEBUG_RECEIVE
+        else fprintf(stderr, "SocketDescriptor(socket %d)::tcpReadHandler(): No \"rtpInterface\" for channel %d\n", fOurSocketNum, fStreamChannelId);
