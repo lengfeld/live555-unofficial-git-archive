@@ -23,12 +23,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include <stddef.h>
 #include <stdio.h>
-#if defined(__WIN32__) || defined(_WIN32)
-#define USE_GETHOSTBYNAME 1 /*because at least some Windows don't have getaddrinfo()*/
-#else
+
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xFFFFFFFF
-#endif
 #endif
 
 ////////// NetAddress //////////
