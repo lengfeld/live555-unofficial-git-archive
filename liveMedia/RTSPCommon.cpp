@@ -361,7 +361,7 @@ char const* dateHeader() {
       time_tm = tm{};
   }
 #else
-  if (gmtime_r(&tt, &time_tm) == nullptr) {
+  if (gmtime_r(&tt, &time_tm) == NULL) {
     time_tm = tm();
   }
 #endif
