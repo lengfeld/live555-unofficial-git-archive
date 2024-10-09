@@ -327,6 +327,8 @@ void RTSPServer::stopTCPStreamingOnSocket(int socketNum) {
     } while (sotcp != NULL);
     fTCPStreamingDatabase->Remove((char const*)socketNum);
   }
+
+  RTPInterface::clearServerRequestAlternativeByteHandler(envir(), socketNum);
 }
 
 
