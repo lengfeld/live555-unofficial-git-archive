@@ -2026,7 +2026,7 @@ void RTSPServer::RTSPClientSession
 ::handleCmd_SET_PARAMETER(RTSPServer::RTSPClientConnection* ourClientConnection,
 			  ServerMediaSubsession* /*subsession*/, char const* fullRequestStr) {
   // If we're authenticating, then any attempt to change state should be checked:
-  if (!fOurClientConnection->authenticationOK("SET_PARAMETER", "", fullRequestStr)) return;
+  if (!ourClientConnection->authenticationOK("SET_PARAMETER", "", fullRequestStr)) return;
 
   // By default, we implement "SET_PARAMETER" just as a 'keep alive', and send back an empty response.
   // (If you want to handle "SET_PARAMETER" properly, you can do so by defining a subclass of "RTSPServer"
